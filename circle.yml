@@ -11,8 +11,7 @@ dependencies:
   override:
     - cabal update
     - cabal sandbox init
-    - cabal install cabal-install
-    - cabal install --only-dependencies
+    - cabal install --only-dependencies -j
     - cabal configure
 
 test:
