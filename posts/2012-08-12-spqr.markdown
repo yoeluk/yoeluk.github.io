@@ -26,6 +26,7 @@ val xml =
       <allsome>
         <some>value</some>
         <some>value</some>
+        <some>value</some>lala
       </allsome>
       <rabbit>Longears</rabbit>
       <duckcount>56</duckcount>
