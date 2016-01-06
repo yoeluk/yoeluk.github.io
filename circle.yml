@@ -11,7 +11,6 @@ dependencies:
 
   override:
     - cabal update
-    - cabal sandbox init
     - cabal install hakyll
     - cabal configure
 
