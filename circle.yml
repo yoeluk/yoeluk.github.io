@@ -11,6 +11,8 @@ dependencies:
   override:
     - docker info
     - docker pull noteed/hakyll
+    - cabal configure
+    - cabal build
 
 test:
 
