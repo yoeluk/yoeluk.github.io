@@ -1,8 +1,7 @@
 machine:
 
-  ghc:
-
-    version: 7.10.2
+  services:
+    - docker
 
   timezone:
     America/New_York
@@ -10,9 +9,8 @@ machine:
 dependencies:
 
   override:
-    - cabal update
-    - cabal install hakyll
-    - cabal configure
+    - docker info
+    - docker pull noteed/hakyll
 
 test:
 
