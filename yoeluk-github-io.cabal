@@ -6,7 +6,7 @@ license-file:       LICENSE.txt
 author:             Yoel Garcia Diaz
 maintainer:         yoeluk@gmail.com
 build-type:         Simple
-cabal-version:      >= 1.2
+cabal-version:      >= 1.20
 
 library
   ghc-options:     -Wall -O2
