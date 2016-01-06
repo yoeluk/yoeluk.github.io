@@ -10,9 +10,9 @@ dependencies:
 
   override:
     override:
-    - cabal update
-    - cabal install --only-dependencies -j
-    - cabal configure
+      - cabal update
+      - cabal install --only-dependencies -j
+      - cabal configure
 
 test:
 
