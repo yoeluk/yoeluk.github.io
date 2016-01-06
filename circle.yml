@@ -11,7 +11,7 @@ dependencies:
   override:
     - curl http://bin.begriffs.com/hakyll/cabal-sandbox.tar.xz | tar xJ
     - cabal sandbox init
-    - cabal configure --disable-library-profiling --disable-tests --disable-library-coverage --disable-benchmarks --disable-split-objs
+    - cabal configure
 
 test:
 
