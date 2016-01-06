@@ -16,7 +16,7 @@ eget tellus sodales lobortis. Sed tempor, urna vel pulvinar faucibus, lectus
 urna vehicula ante, at facilisis dolor odio at lorem. Morbi vehicula euismod
 urna, et imperdiet urna ornare vitae.
 
-```scala
+~~~~~{.scala}
 import scalaz.Apply, scalaz.Scalaz.optionInstance
 import shapeless._, record._, syntax.singleton._, ops.record.Selector
 
@@ -35,7 +35,7 @@ val xml =
 val rabbitWitness = Witness("rabbit")
 
 def selectRabbit[L <: HList](xs: L)(implicit sel: Selector[L, rabbitWitness.T]) = xs("rabbit")
-```
+~~~~~
 
 Sed tincidunt sollicitudin ultrices. In hac habitasse platea dictumst. Morbi
 ligula lectus, egestas at ultricies nec, fringilla et tellus. Duis urna lorem,
