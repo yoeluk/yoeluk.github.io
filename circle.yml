@@ -1,5 +1,8 @@
 machine:
 
+  pre:
+    - export LANG="en_US.UTF-8"
+
   ghc:
     version: 7.6.3
 
