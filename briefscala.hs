@@ -26,4 +26,4 @@ main = do
   final <- shell "git push origin hakyll" empty
   case final of
       ExitSuccess   -> return ()
-      ExitFailure n -> die ("updateSite " <> " failed with exit code: " <> repr n)
+      ExitFailure n -> die ("updateSite" <> " failed with exit code: " <> repr n)
