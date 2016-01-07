@@ -65,6 +65,10 @@ main = hakyll $ do
 
     match "templates/*" $ compile templateCompiler
 
+    match "lib/Font-Awesome/fonts/*" $ do
+        route $ customRoute (combine "fonts" . takeFileName . toFilePath)
+        compile copyFileCompiler
+
 
 --------------------------------------------------------------------------------
 postCtx :: Context String

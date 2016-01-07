@@ -4,3 +4,6 @@
 [submodule "libs/highlighting-kate"]
 	path = libs/highlighting-kate
 	url = git@github.com:jgm/highlighting-kate.git
+[submodule "libs/FontAwesome"]
+	path = libs/FontAwesome
+	url = git@github.com:FortAwesome/Font-Awesome.git
