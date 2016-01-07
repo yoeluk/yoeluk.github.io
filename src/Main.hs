@@ -8,66 +8,69 @@ import           Text.Pandoc.Options (writerHtml5)
 --------------------------------------------------------------------------------
 main :: IO ()
 main = hakyll $ do
-    let writerOptions = defaultHakyllWriterOptions { writerHtml5 = True }
 
-    let pandocHtml5Compiler =
-          pandocCompilerWith defaultHakyllReaderOptions writerOptions
+  let engineConf = defaultEngineConfiguration
 
-    match "images/*" $ do
-        route   idRoute
-        compile copyFileCompiler
+  let writerOptions = defaultHakyllWriterOptions { writerHtml5 = True }
 
-    match "css/*" $ do
-        route   idRoute
-        compile compressCssCompiler
+  let pandocHtml5Compiler =
+      pandocCompilerWith defaultHakyllReaderOptions writerOptions
 
-    match (fromList ["about.rst", "contact.markdown"]) $ do
-        route   $ setExtension "html"
-        compile $ pandocCompiler
-            >>= loadAndApplyTemplate "templates/default.html" defaultContext
-            >>= relativizeUrls
+  match "images/*" $ do
+      route   idRoute
+      compile copyFileCompiler
 
-    match "posts/*" $ do
-        route $ setExtension "html"
-        compile $ pandocHtml5Compiler
-            >>= loadAndApplyTemplate "templates/post.html"    postCtx
-            >>= loadAndApplyTemplate "templates/default.html" postCtx
-            >>= relativizeUrls
+  match "css/*" $ do
+      route   idRoute
+      compile compressCssCompiler
 
-    create ["archive.html"] $ do
-        route idRoute
-        compile $ do
-            posts <- recentFirst =<< loadAll "posts/*"
-            let archiveCtx =
-                    listField "posts" postCtx (return posts) `mappend`
-                    constField "title" "Archives"            `mappend`
-                    defaultContext
+  match (fromList ["about.rst", "contact.markdown"]) $ do
+      route   $ setExtension "html"
+      compile $ pandocCompiler
+          >>= loadAndApplyTemplate "templates/default.html" defaultContext
+          >>= relativizeUrls
 
-            makeItem ""
-                >>= loadAndApplyTemplate "templates/archive.html" archiveCtx
-                >>= loadAndApplyTemplate "templates/default.html" archiveCtx
-                >>= relativizeUrls
+  match "posts/*" $ do
+      route $ setExtension "html"
+      compile $ pandocHtml5Compiler
+          >>= loadAndApplyTemplate "templates/post.html"    postCtx
+          >>= loadAndApplyTemplate "templates/default.html" postCtx
+          >>= relativizeUrls
+
+  create ["archive.html"] $ do
+      route idRoute
+      compile $ do
+          posts <- recentFirst =<< loadAll "posts/*"
+          let archiveCtx =
+                  listField "posts" postCtx (return posts) `mappend`
+                  constField "title" "Archives"            `mappend`
+                  defaultContext
+
+          makeItem ""
+              >>= loadAndApplyTemplate "templates/archive.html" archiveCtx
+              >>= loadAndApplyTemplate "templates/default.html" archiveCtx
+              >>= relativizeUrls
 
 
-    match "index.html" $ do
-        route idRoute
-        compile $ do
-            posts <- recentFirst =<< loadAll "posts/*"
-            let indexCtx =
-                    listField "posts" postCtx (return posts) `mappend`
-                    constField "title" "Home"                `mappend`
-                    defaultContext
+  match "index.html" $ do
+      route idRoute
+      compile $ do
+          posts <- recentFirst =<< loadAll "posts/*"
+          let indexCtx =
+                  listField "posts" postCtx (return posts) `mappend`
+                  constField "title" "Home"                `mappend`
+                  defaultContext
 
-            getResourceBody
-                >>= applyAsTemplate indexCtx
-                >>= loadAndApplyTemplate "templates/default.html" indexCtx
-                >>= relativizeUrls
+          getResourceBody
+              >>= applyAsTemplate indexCtx
+              >>= loadAndApplyTemplate "templates/default.html" indexCtx
+              >>= relativizeUrls
 
-    match "templates/*" $ compile templateCompiler
+  match "templates/*" $ compile templateCompiler
 
-    match "lib/Font-Awesome/fonts/*" $ do
-        route $ customRoute (combine "fonts" . takeFileName . toFilePath)
-        compile copyFileCompiler
+  match "lib/Font-Awesome/fonts/*" $ do
+      route $ customRoute (combine "fonts" . takeFileName . toFilePath)
+      compile copyFileCompiler
 
 
 --------------------------------------------------------------------------------
