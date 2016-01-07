@@ -13,8 +13,7 @@ main = hakyll $ do
 
   let writerOptions = defaultHakyllWriterOptions { writerHtml5 = True }
 
-  let pandocHtml5Compiler =
-      pandocCompilerWith defaultHakyllReaderOptions writerOptions
+  let pandocHtml5Compiler = pandocCompilerWith defaultHakyllReaderOptions writerOptions
 
   match "images/*" $ do
       route   idRoute
