@@ -1,9 +1,8 @@
 --------------------------------------------------------------------------------
 {-# LANGUAGE OverloadedStrings #-}
-import           Data.Monoid (mappend)
 import           Hakyll
 import           Text.Pandoc.Options (writerHtml5)
-import           System.IO (combine, splitExtension, takeFileName)
+import           System.Posix.FilePath (combine, splitExtension, takeFileName)
 import           BriefScala.Config
 
 
