@@ -11,12 +11,6 @@ cabal-version:      >= 1.2
 library
   ghc-options:     -Wall -O2
   hs-source-dirs:  src
-  exposed-modules:
-    Data.FIT.Parse,
-    Data.FIT.Parse.Format,
-    Data.FIT.Parse.Util,
-    Data.Running,
-    Data.Running.KML
   build-depends:
       base == 4.*
     , hakyll == 4.7.*
@@ -29,3 +23,4 @@ executable site
                         , text
                         , pandoc
                         , xml-conduit
+                        , filepath
