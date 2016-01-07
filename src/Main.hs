@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 import           Hakyll
 import           Text.Pandoc.Options (writerHtml5)
+import           System.FilePath (combine, splitExtension, takeFileName)
 import           BriefScala.Config
 
 
