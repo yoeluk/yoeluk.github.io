@@ -7,3 +7,6 @@
 [submodule "libs/FontAwesome"]
 	path = libs/FontAwesome
 	url = git@github.com:FortAwesome/Font-Awesome.git
+[submodule "libs/initializr"]
+	path = libs/initializr
+	url = git@github.com:verekia/initializr.git

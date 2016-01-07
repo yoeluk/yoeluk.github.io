@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Metaplasm.Config where
+module BriefScala.Config where
 
 import Hakyll
 
