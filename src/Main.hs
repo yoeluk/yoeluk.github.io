@@ -124,8 +124,9 @@ main = hakyllWith hakyllConf $ do
           loadAllSnapshots "content/posts/*" "content"
         renderAtom (feedConf "blog") feedCtx (posts)
 
-  siteCtx :: Context String
-  siteCtx =
+--------------------------------------------------------------------------------
+siteCtx :: Context String
+siteCtx =
     deIndexedUrlField "url" `mappend`
     constField "root" (siteRoot siteConf) `mappend`
     constField "gaId" (siteGaId siteConf) `mappend`
@@ -134,48 +135,47 @@ main = hakyllWith hakyllConf $ do
     constField "gMapsApiScript" "" `mappend`
     defaultContext
 
-  postCtx :: Tags -> Context String
-  postCtx tags =
-    dateField "date" "%e %B %Y" `mappend`
-    dateField "datetime" "%Y-%m-%d" `mappend`
-    (tagsFieldWith' getTags) "tags" tags `mappend`
-    siteCtx
+postCtx :: Tags -> Context String
+postCtx tags =
+  dateField "date" "%e %B %Y" `mappend`
+  dateField "datetime" "%Y-%m-%d" `mappend`
+  (tagsFieldWith' getTags) "tags" tags `mappend`
+  siteCtx
 
-  postList :: Tags -> ([Item String] -> Compiler [Item String]) -> Compiler String
-  postList tags sortFilter = do
-    posts <- sortFilter =<< loadAll "content/posts/*"
-    itemTpl <- loadBody "templates/post-item.html"
-    list <- applyTemplateList itemTpl (postCtx tags) posts
-    return list
+postList :: Tags -> ([Item String] -> Compiler [Item String]) -> Compiler String
+postList tags sortFilter = do
+  posts <- sortFilter =<< loadAll "content/posts/*"
+  itemTpl <- loadBody "templates/post-item.html"
+  list <- applyTemplateList itemTpl (postCtx tags) posts
+  return list
 
-  stripContent :: Routes
-  stripContent = gsubRoute "content/" $ const ""
+stripContent :: Routes
+stripContent = gsubRoute "content/" $ const ""
 
-  directorizeDate :: Routes
-  directorizeDate = customRoute (\i -> directorize $ toFilePath i)
-    where
-      directorize path = dirs ++ "/index" ++ ext
-        where
-          (dirs, ext) = splitExtension $ concat $
-            (intersperse "/" date) ++ ["/"] ++ (intersperse "-" rest)
-          (date, rest) = splitAt 3 $ splitOn "-" path
+directorizeDate :: Routes
+directorizeDate = customRoute (\i -> directorize $ toFilePath i)
+  where
+    directorize path = dirs ++ "/index" ++ ext
+      where
+        (dirs, ext) = splitExtension $ concat $
+          (intersperse "/" date) ++ ["/"] ++ (intersperse "-" rest)
+        (date, rest) = splitAt 3 $ splitOn "-" path
 
-  stripIndex :: String -> String
-  stripIndex url = if "index.html" `isSuffixOf` url && elem (head url) ("/." :: String)
-    then take (length url - 10) url else url
+stripIndex :: String -> String
+stripIndex url = if "index.html" `isSuffixOf` url && elem (head url) ("/." :: String)
+  then take (length url - 10) url else url
 
-  deIndexUrls :: Item String -> Compiler (Item String)
-  deIndexUrls item = return $ fmap (withUrls stripIndex) item
+deIndexUrls :: Item String -> Compiler (Item String)
+deIndexUrls item = return $ fmap (withUrls stripIndex) item
 
-  deIndexedUrlField :: String -> Context a
-  deIndexedUrlField key = field key
-    $ fmap (stripIndex . maybe empty toUrl) . getRoute . itemIdentifier
+deIndexedUrlField :: String -> Context a
+deIndexedUrlField key = field key
+  $ fmap (stripIndex . maybe empty toUrl) . getRoute . itemIdentifier
 
-  dropMore :: Item String -> Item String
-  dropMore = fmap (unlines . takeWhile (/= "<!-- MORE -->") . lines)
+dropMore :: Item String -> Item String
+dropMore = fmap (unlines . takeWhile (/= "<!-- MORE -->") . lines)
 
---------------------------------------------------------------------------------
-postCtx :: Context String
-postCtx =
-    dateField "date" "%B %e, %Y" `mappend`
-    defaultContext
+--postCtx :: Context String
+--postCtx =
+--    dateField "date" "%B %e, %Y" `mappend`
+--    defaultContext
