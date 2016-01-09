@@ -51,6 +51,12 @@ main = hakyll $ do
               >>= loadAndApplyTemplate "templates/default.html" archiveCtx
               >>= relativizeUrls
 
+  match (fromList $ lessFiles engineConf) $ do
+    route $ setExtension "css"
+    compile $ getResourceString
+      >>= withItemBody
+        (unixFilter (lessCommand engineConf) $ "-" : (lessOptions engineConf))
+
 
   match "index.html" $ do
       route idRoute
