@@ -68,7 +68,7 @@ main = hakyll $ do
 
   match "templates/*" $ compile templateCompiler
 
-  match "lib/Font-Awesome/fonts/*" $ do
+  match "lib/FontAwesome/fonts/*" $ do
       route $ customRoute (combine "fonts" . takeFileName . toFilePath)
       compile copyFileCompiler
 

@@ -24,10 +24,10 @@ val xml =
     <root>
       <emptyfield/>
       <allsome>
+        lala
         <some>value</some>
         <some>value</some>
-        
-        <some>value</some>lala
+        <some>value</some>
       </allsome>
       <rabbit>Longears</rabbit>
       <duckcount>56</duckcount>

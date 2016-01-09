@@ -5,14 +5,13 @@
 import Turtle
 
 main = do
-  _ <- shell "git submodule init" empty
-  _ <- shell "git submodule update" empty
+  _ <- shell "git submodule update --init" empty
   _ <- shell "cd _site/ && git checkout master" empty
   _ <- shell "cabal run build" empty
 
   _ <- shell "cd _site/ && git status" empty
   _ <- shell "cd _site/ && git add --all" empty
-  _ <- shell "cd _site/ && commit -m \"Update (`date '+%F %T %Z'`) [ci skip]\"" empty
+  _ <- shell "cd _site/ && git commit -m \"Update (`date '+%F %T %Z'`) [ci skip]\"" empty
   _ <- shell "cd _site/ && git push origin master" empty
 
   _ <- shell "git status" empty
