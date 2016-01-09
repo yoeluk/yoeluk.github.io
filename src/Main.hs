@@ -8,7 +8,7 @@ import           BriefScala.Config
 
 --------------------------------------------------------------------------------
 main :: IO ()
-main = hakyll $ do
+main = hakyllWith hakyllConf $ do
 
   let engineConf = defaultEngineConfiguration
 
