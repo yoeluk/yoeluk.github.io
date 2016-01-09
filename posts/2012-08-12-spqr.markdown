@@ -27,7 +27,6 @@ val xml =
         lala
         <some>value</some>
         <some>value</some>
-        <some>value</some>
       </allsome>
       <rabbit>Longears</rabbit>
       <duckcount>56</duckcount>
