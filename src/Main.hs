@@ -1,10 +1,7 @@
 --------------------------------------------------------------------------------
 {-# LANGUAGE OverloadedStrings #-}
 import           Hakyll
-import           Text.XML
 import           Control.Monad (filterM)
-import qualified Data.Map as M
-import           Data.Monoid (mappend)
 import           Data.List (intersperse, isSuffixOf)
 import           Data.List.Split (splitOn)
 import           BriefScala.Tags
