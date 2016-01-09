@@ -88,7 +88,6 @@ main = hakyll $ do
       >>= withItemBody
         (unixFilter (lessCommand engineConf) $ "-" : (lessOptions engineConf))
 
-
   match "index.html" $ do
     route stripContent
     compile $ do
