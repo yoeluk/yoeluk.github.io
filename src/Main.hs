@@ -189,7 +189,7 @@ deIndexUrls item = return $ fmap (withUrls stripIndex) item
 
 deIndexedUrlField :: String -> Context a
 deIndexedUrlField key = field key
-  $ fmap (stripIndex . maybe empty toUrl) . getRoute . itemIdentifier
+  $ fmap (stripIndex . maybe mempty toUrl) . getRoute . itemIdentifier
 
 dropMore :: Item String -> Item String
 dropMore = fmap (unlines . takeWhile (/= "<!-- MORE -->") . lines)
