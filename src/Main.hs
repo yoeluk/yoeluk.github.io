@@ -16,6 +16,10 @@ main = hakyllWith hakyllConf $ do
 
   let pandocHtml5Compiler = pandocCompilerWith defaultHakyllReaderOptions writerOptions
 
+  tags <- buildTags "posts/*" (fromCapture "tags/*/index.html")
+
+  let postTagsCtx = postCtx tags
+
   match "images/*" $ do
       route   idRoute
       compile copyFileCompiler
@@ -51,6 +55,14 @@ main = hakyllWith hakyllConf $ do
               >>= loadAndApplyTemplate "templates/default.html" archiveCtx
               >>= relativizeUrls
 
+  match "extra/*" $ do
+    route idRoute
+    compile copyFileCompiler
+
+  match (fromList $ vendorScriptFiles engineConf) $ do
+    route $ customRoute (combine "js/vendor" . takeFileName . toFilePath)
+    compile copyFileCompiler
+
   match (fromList $ lessFiles engineConf) $ do
     route $ setExtension "css"
     compile $ getResourceString
@@ -77,6 +89,32 @@ main = hakyllWith hakyllConf $ do
   match "lib/FontAwesome/fonts/*" $ do
       route $ customRoute (combine "fonts" . takeFileName . toFilePath)
       compile copyFileCompiler
+
+  tagsRules tags $ \tag pattern -> do
+    let title = "Posts tagged " ++ tag
+
+    route idRoute
+    compile $ do
+      list <- postList tags (\t -> recentFirst t >>= filterM (fmap (elem tag) . getTags . itemIdentifier))
+      let ctx =
+            constField "tag" tag `mappend`
+            constField "posts" list `mappend`
+            constField "feedTitle" title `mappend`
+            constField "title" title `mappend`
+            constField "feedUrl" ("/tags/" ++ tag ++ "/index.xml") `mappend`
+            siteCtx
+      makeItem ""
+        >>= loadAndApplyTemplate "templates/tag-posts.html" ctx
+        >>= loadAndApplyTemplate "templates/default.html" ctx
+        >>= relativizeUrls
+        >>= deIndexUrls
+
+    version "rss" $ do
+      let feedCtx = postCtx tags `mappend` bodyField "description"
+      route $ setExtension "xml"
+      compile $ loadAllSnapshots pattern "content"
+        >>= fmap (take 10) . recentFirst
+        >>= renderAtom (feedConf title) feedCtx
 
 
 --------------------------------------------------------------------------------
