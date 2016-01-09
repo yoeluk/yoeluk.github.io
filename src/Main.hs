@@ -1,14 +1,36 @@
 --------------------------------------------------------------------------------
 {-# LANGUAGE OverloadedStrings #-}
 import           Hakyll
+import           Text.XML
+import           Control.Monad (filterM)
+import qualified Data.Map as M
+import           Data.Monoid (mappend)
+import           Data.List (intersperse, isSuffixOf)
+import           Data.List.Split (splitOn)
+import           BriefScala.Tags
 import           Text.Pandoc.Options (writerHtml5)
 import           System.FilePath (combine, splitExtension, takeFileName)
 import           BriefScala.Config
 
 
 --------------------------------------------------------------------------------
+siteConf :: SiteConfiguration
+siteConf = SiteConfiguration
+  { siteRoot = "https://briefscala.com"
+  , siteGaId = "NA-NA"
+  }
+
+feedConf :: String -> FeedConfiguration
+feedConf title = FeedConfiguration
+  { feedTitle = "briefscala.com: " ++ title
+  , feedDescription = "A Scala blog"
+  , feedAuthorName = "Yoel Garcia"
+  , feedAuthorEmail = "yoeluk@gmail.com"
+  , feedRoot = "https://briefscala.com"
+  }
+
 main :: IO ()
-main = hakyllWith hakyllConf $ do
+main = hakyll $ do
 
   let engineConf = defaultEngineConfiguration
 
@@ -36,24 +58,25 @@ main = hakyllWith hakyllConf $ do
 
   match "posts/*" $ do
       route $ setExtension "html"
-      compile $ pandocHtml5Compiler
-          >>= loadAndApplyTemplate "templates/post.html"    postCtx
-          >>= loadAndApplyTemplate "templates/default.html" postCtx
+      compile $ do
+        compiled <- pandocHtml5Compiler
+        full <- loadAndApplyTemplate "templates/post.html" postTagsCtx compiled
+        loadAndApplyTemplate "templates/post.html"    (postCtx tags) full
+        loadAndApplyTemplate "templates/default.html" (postCtx tags) full
           >>= relativizeUrls
+          >>= deIndexUrls
 
   create ["archive.html"] $ do
       route idRoute
       compile $ do
-          posts <- recentFirst =<< loadAll "posts/*"
-          let archiveCtx =
-                  listField "posts" postCtx (return posts) `mappend`
-                  constField "title" "Archives"            `mappend`
-                  defaultContext
+        let archiveCtx =
+              field "posts" (\_ -> postList tags recentFirst) `mappend`
+              constField "title" "Archives" `mappend` siteCtx
 
-          makeItem ""
-              >>= loadAndApplyTemplate "templates/archive.html" archiveCtx
-              >>= loadAndApplyTemplate "templates/default.html" archiveCtx
-              >>= relativizeUrls
+        makeItem ""
+            >>= loadAndApplyTemplate "templates/archive.html" archiveCtx
+            >>= loadAndApplyTemplate "templates/default.html" archiveCtx
+            >>= relativizeUrls
 
   match "extra/*" $ do
     route idRoute
@@ -71,18 +94,18 @@ main = hakyllWith hakyllConf $ do
 
 
   match "index.html" $ do
-      route idRoute
-      compile $ do
-          posts <- recentFirst =<< loadAll "posts/*"
-          let indexCtx =
-                  listField "posts" postCtx (return posts) `mappend`
-                  constField "title" "Home"                `mappend`
-                  defaultContext
-
-          getResourceBody
-              >>= applyAsTemplate indexCtx
-              >>= loadAndApplyTemplate "templates/default.html" indexCtx
-              >>= relativizeUrls
+    route stripContent
+    compile $ do
+      tpl <- loadBody "templates/post-item-full.html"
+      body <- readTemplate . itemBody <$> getResourceBody
+      loadAllSnapshots "content/posts/*" "teaser"
+        >>= fmap (take 100) . recentFirst
+        >>= applyTemplateList tpl (postCtx tags)
+        >>= makeItem
+        >>= applyTemplate body (siteCtx `mappend` bodyField "posts")
+        >>= loadAndApplyTemplate "templates/default.html" siteCtx
+        >>= relativizeUrls
+        >>= deIndexUrls
 
   match "templates/*" $ compile templateCompiler
 
@@ -127,7 +150,7 @@ main = hakyllWith hakyllConf $ do
 --------------------------------------------------------------------------------
 siteCtx :: Context String
 siteCtx =
-    deIndexedUrlField "url" `mappend`
+    --deIndexedUrlField "url" `mappend`
     constField "root" (siteRoot siteConf) `mappend`
     constField "gaId" (siteGaId siteConf) `mappend`
     constField "feedTitle" "Posts" `mappend`
@@ -168,9 +191,9 @@ stripIndex url = if "index.html" `isSuffixOf` url && elem (head url) ("/." :: St
 deIndexUrls :: Item String -> Compiler (Item String)
 deIndexUrls item = return $ fmap (withUrls stripIndex) item
 
-deIndexedUrlField :: String -> Context a
-deIndexedUrlField key = field key
-  $ fmap (stripIndex . maybe empty toUrl) . getRoute . itemIdentifier
+--deIndexedUrlField :: String -> Context a
+--deIndexedUrlField key = field key
+--  $ fmap (stripIndex . maybe empty toUrl) . getRoute . itemIdentifier
 
 dropMore :: Item String -> Item String
 dropMore = fmap (unlines . takeWhile (/= "<!-- MORE -->") . lines)

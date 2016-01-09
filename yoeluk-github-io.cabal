@@ -24,3 +24,5 @@ executable site
                         , pandoc
                         , xml-conduit
                         , filepath
+                        , split
+                        , blaze-html
