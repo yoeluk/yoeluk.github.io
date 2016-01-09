@@ -39,7 +39,11 @@ main = hakyll $ do
 
   let postTagsCtx = postCtx tags
 
-  match "images/*" $ do
+  match "tmp/*" $ do
+    route stripContent
+    compile copyFileCompiler
+
+  match "images/*.png" $ do
       route   idRoute
       compile copyFileCompiler
 
@@ -109,7 +113,7 @@ main = hakyll $ do
 
   match "templates/*" $ compile templateCompiler
 
-  match "lib/FontAwesome/fonts/*" $ do
+  match "libs/FontAwesome/fonts/*" $ do
       route $ customRoute (combine "fonts" . takeFileName . toFilePath)
       compile copyFileCompiler
 
