@@ -144,48 +144,6 @@ main = hakyllWith hakyllConf $ do
         loadAllSnapshots "content/posts/*" "content"
       renderAtom (feedConf "blog") feedCtx (posts)
 
-  tracks <- fitTracks "content/running/*.FIT"
-
-  match "content/running/*.FIT" $ do
-    route $ fitRoute tracks
-    compile $ do
-      Item _ (Right points) <- fmap parseBytes <$> getResourceLBS
-      let ctx = fitCtx points siteCtx
-      body <- fitBody tracks points 1.0 4
-      makeItem body
-        >>= loadAndApplyTemplate "templates/running/run.html" ctx
-        >>= saveSnapshot "content"
-        >>= loadAndApplyTemplate "templates/default.html" ctx
-        >>= relativizeUrls
-        >>= deIndexUrls
-
-  match "content/running/index.html" $ do
-    route stripContent
-    compile $ do
-      tpl <- loadBody "templates/post-item-full.html"
-      body <- readTemplate . itemBody <$> getResourceBody
-      take 10 . fitRecentFirst tracks <$> loadAllSnapshots "content/running/*.FIT" "content"
-        >>= applyTemplateList tpl siteCtx
-        >>= makeItem
-        >>= applyTemplate body (siteCtx `mappend` bodyField "posts")
-        >>= loadAndApplyTemplate "templates/default.html" (constField "gMapsApiScript" gMapsApiScript `mappend` siteCtx)
-        >>= relativizeUrls
-        >>= deIndexUrls
-
-  match "content/running/all/index.html" $ do
-    route stripContent
-    compile $ do
-      let onlyClose ((PointRecord _ (Coord (lat, lng)) _ _) : _) = sqrt ((38.976646 - lat) ** 2 +  (-76.936947 - lng) ** 2) < 0.2
-      let onlyCloseTracks = M.filter onlyClose tracks
-      let points = concat $ M.elems onlyCloseTracks
-      body <- fitBody onlyCloseTracks points 0.5 3
-      let ctx = fitCtx (concat $ M.elems tracks) siteCtx
-      makeItem body
-        >>= loadAndApplyTemplate "templates/running/run.html" ctx
-        >>= loadAndApplyTemplate "templates/default.html" ctx
-        >>= relativizeUrls
-        >>= deIndexUrls
-
   match "templates/*" $ compile templateCompiler
   match "templates/*/*" $ compile templateCompiler
 
@@ -234,7 +192,7 @@ deIndexUrls item = return $ fmap (withUrls stripIndex) item
 
 deIndexedUrlField :: String -> Context a
 deIndexedUrlField key = field key
-  $ fmap (stripIndex . maybe empty toUrl) . getRoute . itemIdentifier
+  $ fmap (stripIndex . maybe mempty toUrl) . getRoute . itemIdentifier
 
 dropMore :: Item String -> Item String
 dropMore = fmap (unlines . takeWhile (/= "<!-- MORE -->") . lines)
