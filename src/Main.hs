@@ -116,6 +116,14 @@ main = hakyllWith hakyllConf $ do
         >>= fmap (take 10) . recentFirst
         >>= renderAtom (feedConf title) feedCtx
 
+  create ["atom.xml"] $ do
+      route idRoute
+      compile $ do
+        let feedCtx = postCtx tags `mappend` bodyField "description"
+        posts <- mapM deIndexUrls =<< fmap (take 10) . recentFirst =<<
+          loadAllSnapshots "content/posts/*" "content"
+        renderAtom (feedConf "blog") feedCtx (posts)
+
   siteCtx :: Context String
   siteCtx =
     deIndexedUrlField "url" `mappend`
@@ -124,7 +132,7 @@ main = hakyllWith hakyllConf $ do
     constField "feedTitle" "Posts" `mappend`
     constField "feedUrl" "/atom.xml" `mappend`
     constField "gMapsApiScript" "" `mappend`
-    defaultContext 
+    defaultContext
 
   postCtx :: Tags -> Context String
   postCtx tags =
