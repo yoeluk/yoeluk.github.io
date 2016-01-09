@@ -27,61 +27,28 @@ feedConf title = FeedConfiguration
   }
 
 main :: IO ()
-main = hakyll $ do
-
+main = hakyllWith hakyllConf $ do
   let engineConf = defaultEngineConfiguration
-
   let writerOptions = defaultHakyllWriterOptions { writerHtml5 = True }
 
-  let pandocHtml5Compiler = pandocCompilerWith defaultHakyllReaderOptions writerOptions
+  let pandocHtml5Compiler =
+        pandocCompilerWith defaultHakyllReaderOptions writerOptions
 
-  tags <- buildTags "posts/*" (fromCapture "tags/*/index.html")
+  tags <- buildTags "content/posts/*" (fromCapture "tags/*/index.html")
 
   let postTagsCtx = postCtx tags
 
-  match "tmp/*" $ do
+  match "content/tmp/*" $ do
     route stripContent
     compile copyFileCompiler
 
   match "images/*.png" $ do
-      route   idRoute
-      compile copyFileCompiler
+    route idRoute
+    compile copyFileCompiler
 
-  match "css/*" $ do
-      route   idRoute
-      compile compressCssCompiler
-
-  match (fromList ["about.md", "contact.markdown"]) $ do
-      route   $ setExtension "html"
-      compile $ pandocHtml5Compiler
-          >>= loadAndApplyTemplate "templates/about.html"  siteCtx
-          >>= loadAndApplyTemplate "templates/default.html" siteCtx
-          >>= relativizeUrls
-          >>= deIndexUrls
-
-  match "posts/*" $ do
-      route $ directorizeDate `composeRoutes` stripContent `composeRoutes` setExtension "html"
-      compile $ do
-        compiled <- pandocHtml5Compiler
-        full <- loadAndApplyTemplate "templates/post.html" postTagsCtx compiled
-        teaser <- loadAndApplyTemplate "templates/post-teaser.html" postTagsCtx $ dropMore compiled
-        _ <- saveSnapshot "content" full
-        _ <- saveSnapshot "teaser" teaser
-        loadAndApplyTemplate "templates/default.html" (postCtx tags) full
-          >>= relativizeUrls
-          >>= deIndexUrls
-
-  create ["archive.html"] $ do
-      route idRoute
-      compile $ do
-        let archiveCtx =
-              field "posts" (\_ -> postList tags recentFirst) `mappend`
-              constField "title" "Archives" `mappend` siteCtx
-
-        makeItem ""
-            >>= loadAndApplyTemplate "templates/archive.html" archiveCtx
-            >>= loadAndApplyTemplate "templates/default.html" archiveCtx
-            >>= relativizeUrls
+  match "libs/FontAwesome/fonts/*" $ do
+    route $ customRoute (combine "fonts" . takeFileName . toFilePath)
+    compile copyFileCompiler
 
   match "extra/*" $ do
     route idRoute
@@ -97,25 +64,13 @@ main = hakyll $ do
       >>= withItemBody
         (unixFilter (lessCommand engineConf) $ "-" : (lessOptions engineConf))
 
-  match "index.html" $ do
-    route stripContent
-    compile $ do
-      tpl <- loadBody "templates/post-item-full.html"
-      body <- readTemplate . itemBody <$> getResourceBody
-      loadAllSnapshots "posts/*" "teaser"
-        >>= fmap (take 100) . recentFirst
-        >>= applyTemplateList tpl (postCtx tags)
-        >>= makeItem
-        >>= applyTemplate body (siteCtx `mappend` bodyField "posts")
-        >>= loadAndApplyTemplate "templates/default.html" siteCtx
-        >>= relativizeUrls
-        >>= deIndexUrls
-
-  match "templates/*" $ compile templateCompiler
-
-  match "libs/FontAwesome/fonts/*" $ do
-      route $ customRoute (combine "fonts" . takeFileName . toFilePath)
-      compile copyFileCompiler
+  match "content/about/index.md" $ do
+    route $ stripContent `composeRoutes` setExtension "html"
+    compile $ pandocHtml5Compiler
+      >>= loadAndApplyTemplate "templates/about.html"  siteCtx
+      >>= loadAndApplyTemplate "templates/default.html" siteCtx
+      >>= relativizeUrls
+      >>= deIndexUrls
 
   tagsRules tags $ \tag pattern -> do
     let title = "Posts tagged " ++ tag
@@ -143,27 +98,106 @@ main = hakyll $ do
         >>= fmap (take 10) . recentFirst
         >>= renderAtom (feedConf title) feedCtx
 
+  match "content/posts/*" $ do
+    route $ directorizeDate `composeRoutes` stripContent `composeRoutes` setExtension "html"
+    compile $ do
+      compiled <- pandocHtml5Compiler
+      full <- loadAndApplyTemplate "templates/post.html" postTagsCtx compiled
+      teaser <- loadAndApplyTemplate "templates/post-teaser.html" postTagsCtx $ dropMore compiled
+      saveSnapshot "content" full
+      saveSnapshot "teaser" teaser
+      loadAndApplyTemplate "templates/default.html" (postCtx tags) full
+        >>= relativizeUrls
+        >>= deIndexUrls
+
+  create ["archive.html"] $ do
+    route idRoute
+    compile $ do
+      let archiveCtx =
+            field "posts" (\_ -> postList tags recentFirst) `mappend`
+            constField "title" "Archives" `mappend` siteCtx
+
+      makeItem ""
+        >>= loadAndApplyTemplate "templates/archive.html" archiveCtx
+        >>= loadAndApplyTemplate "templates/default.html" archiveCtx
+        >>= relativizeUrls
+
+  match "content/index.html" $ do
+    route stripContent
+    compile $ do
+      tpl <- loadBody "templates/post-item-full.html"
+      body <- readTemplate . itemBody <$> getResourceBody
+      loadAllSnapshots "content/posts/*" "teaser"
+        >>= fmap (take 100) . recentFirst
+        >>= applyTemplateList tpl (postCtx tags)
+        >>= makeItem
+        >>= applyTemplate body (siteCtx `mappend` bodyField "posts")
+        >>= loadAndApplyTemplate "templates/default.html" siteCtx
+        >>= relativizeUrls
+        >>= deIndexUrls
+
   create ["atom.xml"] $ do
-      route idRoute
-      compile $ do
-        let feedCtx = postCtx tags `mappend` bodyField "description"
-        posts <- mapM deIndexUrls =<< fmap (take 10) . recentFirst =<<
-          loadAllSnapshots "posts/*" "content"
-        renderAtom (feedConf "blog") feedCtx (posts)
+    route idRoute
+    compile $ do
+      let feedCtx = postCtx tags `mappend` bodyField "description"
+      posts <- mapM deIndexUrls =<< fmap (take 10) . recentFirst =<<
+        loadAllSnapshots "content/posts/*" "content"
+      renderAtom (feedConf "blog") feedCtx (posts)
+
+  tracks <- fitTracks "content/running/*.FIT"
+
+  match "content/running/*.FIT" $ do
+    route $ fitRoute tracks
+    compile $ do
+      Item _ (Right points) <- fmap parseBytes <$> getResourceLBS
+      let ctx = fitCtx points siteCtx
+      body <- fitBody tracks points 1.0 4
+      makeItem body
+        >>= loadAndApplyTemplate "templates/running/run.html" ctx
+        >>= saveSnapshot "content"
+        >>= loadAndApplyTemplate "templates/default.html" ctx
+        >>= relativizeUrls
+        >>= deIndexUrls
+
+  match "content/running/index.html" $ do
+    route stripContent
+    compile $ do
+      tpl <- loadBody "templates/post-item-full.html"
+      body <- readTemplate . itemBody <$> getResourceBody
+      take 10 . fitRecentFirst tracks <$> loadAllSnapshots "content/running/*.FIT" "content"
+        >>= applyTemplateList tpl siteCtx
+        >>= makeItem
+        >>= applyTemplate body (siteCtx `mappend` bodyField "posts")
+        >>= loadAndApplyTemplate "templates/default.html" (constField "gMapsApiScript" gMapsApiScript `mappend` siteCtx)
+        >>= relativizeUrls
+        >>= deIndexUrls
+
+  match "content/running/all/index.html" $ do
+    route stripContent
+    compile $ do
+      let onlyClose ((PointRecord _ (Coord (lat, lng)) _ _) : _) = sqrt ((38.976646 - lat) ** 2 +  (-76.936947 - lng) ** 2) < 0.2
+      let onlyCloseTracks = M.filter onlyClose tracks
+      let points = concat $ M.elems onlyCloseTracks
+      body <- fitBody onlyCloseTracks points 0.5 3
+      let ctx = fitCtx (concat $ M.elems tracks) siteCtx
+      makeItem body
+        >>= loadAndApplyTemplate "templates/running/run.html" ctx
+        >>= loadAndApplyTemplate "templates/default.html" ctx
+        >>= relativizeUrls
+        >>= deIndexUrls
 
   match "templates/*" $ compile templateCompiler
   match "templates/*/*" $ compile templateCompiler
 
---------------------------------------------------------------------------------
 siteCtx :: Context String
 siteCtx =
-    deIndexedUrlField "url" `mappend`
-    constField "root" (siteRoot siteConf) `mappend`
-    constField "gaId" (siteGaId siteConf) `mappend`
-    constField "feedTitle" "Posts" `mappend`
-    constField "feedUrl" "/atom.xml" `mappend`
-    constField "gMapsApiScript" "" `mappend`
-    defaultContext
+  deIndexedUrlField "url" `mappend`
+  constField "root" (siteRoot siteConf) `mappend`
+  constField "gaId" (siteGaId siteConf) `mappend`
+  constField "feedTitle" "Posts" `mappend`
+  constField "feedUrl" "/atom.xml" `mappend`
+  constField "gMapsApiScript" "" `mappend`
+  defaultContext
 
 postCtx :: Tags -> Context String
 postCtx tags =
@@ -174,7 +208,7 @@ postCtx tags =
 
 postList :: Tags -> ([Item String] -> Compiler [Item String]) -> Compiler String
 postList tags sortFilter = do
-  posts <- sortFilter =<< loadAll "posts/*"
+  posts <- sortFilter =<< loadAll "content/posts/*"
   itemTpl <- loadBody "templates/post-item.html"
   list <- applyTemplateList itemTpl (postCtx tags) posts
   return list
@@ -200,12 +234,7 @@ deIndexUrls item = return $ fmap (withUrls stripIndex) item
 
 deIndexedUrlField :: String -> Context a
 deIndexedUrlField key = field key
-  $ fmap (stripIndex . maybe mempty toUrl) . getRoute . itemIdentifier
+  $ fmap (stripIndex . maybe empty toUrl) . getRoute . itemIdentifier
 
 dropMore :: Item String -> Item String
 dropMore = fmap (unlines . takeWhile (/= "<!-- MORE -->") . lines)
-
---postCtx :: Context String
---postCtx =
---    dateField "date" "%B %e, %Y" `mappend`
---    defaultContext
