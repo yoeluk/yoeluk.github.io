@@ -116,6 +116,55 @@ main = hakyllWith hakyllConf $ do
         >>= fmap (take 10) . recentFirst
         >>= renderAtom (feedConf title) feedCtx
 
+  siteCtx :: Context String
+  siteCtx =
+    deIndexedUrlField "url" `mappend`
+    constField "root" (siteRoot siteConf) `mappend`
+    constField "gaId" (siteGaId siteConf) `mappend`
+    constField "feedTitle" "Posts" `mappend`
+    constField "feedUrl" "/atom.xml" `mappend`
+    constField "gMapsApiScript" "" `mappend`
+    defaultContext
+
+  postCtx :: Tags -> Context String
+  postCtx tags =
+    dateField "date" "%e %B %Y" `mappend`
+    dateField "datetime" "%Y-%m-%d" `mappend`
+    (tagsFieldWith' getTags) "tags" tags `mappend`
+    siteCtx
+
+  postList :: Tags -> ([Item String] -> Compiler [Item String]) -> Compiler String
+  postList tags sortFilter = do
+    posts <- sortFilter =<< loadAll "content/posts/*"
+    itemTpl <- loadBody "templates/post-item.html"
+    list <- applyTemplateList itemTpl (postCtx tags) posts
+    return list
+
+  stripContent :: Routes
+  stripContent = gsubRoute "content/" $ const ""
+
+  directorizeDate :: Routes
+  directorizeDate = customRoute (\i -> directorize $ toFilePath i)
+    where
+      directorize path = dirs ++ "/index" ++ ext
+        where
+          (dirs, ext) = splitExtension $ concat $
+            (intersperse "/" date) ++ ["/"] ++ (intersperse "-" rest)
+          (date, rest) = splitAt 3 $ splitOn "-" path
+
+  stripIndex :: String -> String
+  stripIndex url = if "index.html" `isSuffixOf` url && elem (head url) ("/." :: String)
+    then take (length url - 10) url else url
+
+  deIndexUrls :: Item String -> Compiler (Item String)
+  deIndexUrls item = return $ fmap (withUrls stripIndex) item
+
+  deIndexedUrlField :: String -> Context a
+  deIndexedUrlField key = field key
+    $ fmap (stripIndex . maybe empty toUrl) . getRoute . itemIdentifier
+
+  dropMore :: Item String -> Item String
+  dropMore = fmap (unlines . takeWhile (/= "<!-- MORE -->") . lines)
 
 --------------------------------------------------------------------------------
 postCtx :: Context String
