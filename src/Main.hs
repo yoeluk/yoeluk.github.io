@@ -147,6 +147,9 @@ main = hakyll $ do
           loadAllSnapshots "posts/*" "content"
         renderAtom (feedConf "blog") feedCtx (posts)
 
+  match "templates/*" $ compile templateCompiler
+  match "templates/*/*" $ compile templateCompiler
+
 --------------------------------------------------------------------------------
 siteCtx :: Context String
 siteCtx =
