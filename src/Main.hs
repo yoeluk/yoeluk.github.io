@@ -47,17 +47,22 @@ main = hakyll $ do
       route   idRoute
       compile compressCssCompiler
 
-  match (fromList ["about.rst", "contact.markdown"]) $ do
+  match (fromList ["about.md", "contact.markdown"]) $ do
       route   $ setExtension "html"
       compile $ pandocHtml5Compiler
-          >>= loadAndApplyTemplate "templates/default.html" defaultContext
+          >>= loadAndApplyTemplate "templates/about.html"  siteCtx
+          >>= loadAndApplyTemplate "templates/default.html" siteCtx
           >>= relativizeUrls
+          >>= deIndexUrls
 
   match "posts/*" $ do
-      route $ setExtension "html"
+      route $ directorizeDate `composeRoutes` stripContent `composeRoutes` setExtension "html"
       compile $ do
         compiled <- pandocHtml5Compiler
         full <- loadAndApplyTemplate "templates/post.html" postTagsCtx compiled
+        teaser <- loadAndApplyTemplate "templates/post-teaser.html" postTagsCtx $ dropMore compiled
+        _ <- saveSnapshot "content" full
+        _ <- saveSnapshot "teaser" teaser
         loadAndApplyTemplate "templates/default.html" (postCtx tags) full
           >>= relativizeUrls
           >>= deIndexUrls
