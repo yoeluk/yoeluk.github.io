@@ -16,6 +16,7 @@ main = do
 
   _ <- shell "git status" empty
   _ <- shell "git add _site" empty
+  _ <- shell "git add -u" empty
   _ <- shell "git commit -m \"Update _site (`date '+%F %T %Z'`) [ci skip]\"" empty
   final <- shell "git push origin hakyll" empty
   case final of
