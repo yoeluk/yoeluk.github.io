@@ -146,7 +146,7 @@ main = hakyll $ do
 --------------------------------------------------------------------------------
 siteCtx :: Context String
 siteCtx =
-    --deIndexedUrlField "url" `mappend`
+    deIndexedUrlField "url" `mappend`
     constField "root" (siteRoot siteConf) `mappend`
     constField "gaId" (siteGaId siteConf) `mappend`
     constField "feedTitle" "Posts" `mappend`
@@ -187,9 +187,9 @@ stripIndex url = if "index.html" `isSuffixOf` url && elem (head url) ("/." :: St
 deIndexUrls :: Item String -> Compiler (Item String)
 deIndexUrls item = return $ fmap (withUrls stripIndex) item
 
---deIndexedUrlField :: String -> Context a
---deIndexedUrlField key = field key
---  $ fmap (stripIndex . maybe empty toUrl) . getRoute . itemIdentifier
+deIndexedUrlField :: String -> Context a
+deIndexedUrlField key = field key
+  $ fmap (stripIndex . maybe empty toUrl) . getRoute . itemIdentifier
 
 dropMore :: Item String -> Item String
 dropMore = fmap (unlines . takeWhile (/= "<!-- MORE -->") . lines)
