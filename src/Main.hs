@@ -58,7 +58,7 @@ main = hakyll $ do
       compile $ do
         compiled <- pandocHtml5Compiler
         full <- loadAndApplyTemplate "templates/post.html" postTagsCtx compiled
-        _ <- loadAndApplyTemplate "templates/default.html" (postCtx tags) full
+        loadAndApplyTemplate "templates/default.html" (postCtx tags) full
           >>= relativizeUrls
           >>= deIndexUrls
 
