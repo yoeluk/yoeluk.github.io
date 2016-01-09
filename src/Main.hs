@@ -117,8 +117,7 @@ main = hakyllWith hakyllConf $ do
         >>= renderAtom (feedConf title) feedCtx
 
   siteCtx :: Context String
-  siteCtx = {
-    deIndexedUrlField "url" `mappend`
+  siteCtx = { deIndexedUrlField "url" `mappend`
     constField "root" (siteRoot siteConf) `mappend`
     constField "gaId" (siteGaId siteConf) `mappend`
     constField "feedTitle" "Posts" `mappend`
