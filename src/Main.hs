@@ -27,12 +27,11 @@ feedConf title = FeedConfiguration
   }
 
 main :: IO ()
-main = hakyllWith hakyllConf $ do
+main = hakyll $ do
   let engineConf = defaultEngineConfiguration
   let writerOptions = defaultHakyllWriterOptions { writerHtml5 = True }
 
-  let pandocHtml5Compiler =
-        pandocCompilerWith defaultHakyllReaderOptions writerOptions
+  let pandocHtml5Compiler = pandocCompilerWith defaultHakyllReaderOptions writerOptions
 
   tags <- buildTags "content/posts/*" (fromCapture "tags/*/index.html")
 
