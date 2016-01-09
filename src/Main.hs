@@ -163,7 +163,7 @@ postCtx tags =
 
 postList :: Tags -> ([Item String] -> Compiler [Item String]) -> Compiler String
 postList tags sortFilter = do
-  posts <- sortFilter =<< loadAll "content/posts/*"
+  posts <- sortFilter =<< loadAll "posts/*"
   itemTpl <- loadBody "templates/post-item.html"
   list <- applyTemplateList itemTpl (postCtx tags) posts
   return list
