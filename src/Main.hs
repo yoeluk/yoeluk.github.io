@@ -49,7 +49,7 @@ main = hakyll $ do
 
   match (fromList ["about.rst", "contact.markdown"]) $ do
       route   $ setExtension "html"
-      compile $ pandocCompiler
+      compile $ pandocHtml5Compiler
           >>= loadAndApplyTemplate "templates/default.html" defaultContext
           >>= relativizeUrls
 
@@ -93,7 +93,7 @@ main = hakyll $ do
     compile $ do
       tpl <- loadBody "templates/post-item-full.html"
       body <- readTemplate . itemBody <$> getResourceBody
-      loadAllSnapshots "content/posts/*" "teaser"
+      loadAllSnapshots "posts/*" "teaser"
         >>= fmap (take 100) . recentFirst
         >>= applyTemplateList tpl (postCtx tags)
         >>= makeItem
@@ -139,7 +139,7 @@ main = hakyll $ do
       compile $ do
         let feedCtx = postCtx tags `mappend` bodyField "description"
         posts <- mapM deIndexUrls =<< fmap (take 10) . recentFirst =<<
-          loadAllSnapshots "content/posts/*" "content"
+          loadAllSnapshots "posts/*" "content"
         renderAtom (feedConf "blog") feedCtx (posts)
 
 --------------------------------------------------------------------------------
