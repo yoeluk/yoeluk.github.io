@@ -1,6 +1,6 @@
 [submodule "_site"]
 	path = _site
-	url = git@github.com:yoeluk/yoeluk.github.io.git
+	url = git@github.com:yoeluk/yoeluk.github.io
 [submodule "libs/highlighting-kate"]
 	path = libs/highlighting-kate
 	url = git@github.com:jgm/highlighting-kate.git
@@ -13,3 +13,6 @@
 [submodule "libs/bootstrap"]
 	path = libs/bootstrap
 	url = git@github.com:twbs/bootstrap.git
+[submodule "yoeluk.github.io"]
+	path = yoeluk.github.io
+	url = git@github.com:yoeluk/yoeluk.github.io
