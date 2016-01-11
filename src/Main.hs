@@ -103,8 +103,8 @@ main = hakyll $ do
       compiled <- pandocHtml5Compiler
       full <- loadAndApplyTemplate "templates/post.html" postTagsCtx compiled
       teaser <- loadAndApplyTemplate "templates/post-teaser.html" postTagsCtx $ dropMore compiled
-      saveSnapshot "content" full
-      saveSnapshot "teaser" teaser
+      _ <- saveSnapshot "content" full
+      _ <- saveSnapshot "teaser" teaser
       loadAndApplyTemplate "templates/default.html" (postCtx tags) full
         >>= relativizeUrls
         >>= deIndexUrls
