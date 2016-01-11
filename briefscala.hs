@@ -7,7 +7,7 @@ import Turtle
 main = do
   _ <- shell "git submodule update --init" empty
   _ <- shell "cd _site/ && git checkout master" empty
-  _ <- shell "cabal run build" empty
+  _ <- shell "cabal run rebuild" empty
 
   _ <- shell "cd _site/ && git status" empty
   _ <- shell "cd _site/ && git add --all" empty
