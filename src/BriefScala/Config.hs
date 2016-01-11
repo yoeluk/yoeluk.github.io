@@ -22,7 +22,7 @@ defaultEngineConfiguration = EngineConfiguration
     ]
   }
   where
-    modulePath = "lib/initializr/war/builder/modules/"
+    modulePath = "libs/initializr/war/builder/modules/"
 
 data SiteConfiguration = SiteConfiguration
   { siteRoot :: String
